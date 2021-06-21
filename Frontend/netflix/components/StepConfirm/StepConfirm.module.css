@@ -1,0 +1,12 @@
+.container {
+    margin: auto;
+    width: 450px;
+    margin-top: 120px;
+    max-width: 90%;
+}
+
+.img {
+    width: 100px;
+    display: block;
+    margin: auto;
+}

@@ -1,0 +1,59 @@
+.container {
+    width: 400px;
+    margin: auto;
+    max-width: 95%;
+}
+
+.step {
+    font-size: 14px;
+    margin: 0;
+    text-align: center;
+}
+
+.span {
+    font-weight: bold;
+}
+
+.header {
+    font-size: 23px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.img {
+    width: 50px;
+    margin: auto;
+    margin-bottom: 25px;
+    margin-top: 120px;
+    max-width: 95%;
+}
+
+.check_list {
+    width: 300px;
+    margin: auto;
+}
+
+.check_item {
+    text-align: left;
+    font-size: 17px;
+}
+
+.mark {
+    margin-right: 10px;
+    color: red;
+    font-size: 24px;
+}
+
+.btn_wrapper {
+    width: 340px;
+    margin: auto;
+    max-width: 100%;
+}
+
+@media only screen and (max-width: 600px) {
+    .img {
+        margin-top: 60px;
+    }
+}

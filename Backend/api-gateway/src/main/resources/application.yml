@@ -1,0 +1,71 @@
+server:
+  port: 9001
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: USER-SERVICE
+          uri: http://user-service:9003
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: USER-SERVICE
+                fallbackuri: forward:/userServiceFallBack
+        - id: CONTENT-SERVICE
+          uri: http://content-service:9002
+          predicates:
+            - Path=/content/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: CONTENT-SERVICE
+                fallbackuri: forward:/contentServiceFallBack
+        - id: PAYMENT-SERVICE
+          uri: http://payment-service:9004
+          predicates:
+            - Path=/payment/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: PAYMENT-SERVICE
+                fallbackuri: forward:/paymentService
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 10000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-spring:8761/eureka/
+    instance:
+      preferIpAddress: true
+  instance:
+    hostname: eureka-spring

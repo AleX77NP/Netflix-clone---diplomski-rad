@@ -1,0 +1,129 @@
+version: '3.9'
+
+services: 
+    postgres:
+        image: postgres
+        ports: 
+            - 5432:5432
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+        environment: 
+            - POSTGRES_DB=payments
+            - POSTGRES_USER=admin
+            - POSTGRES_PASSWORD=admin
+    mongo:
+        image: mongo:latest
+        environment: 
+            MONGO_USERNAME: root
+            MONGO_PASSWORD: rootpassword
+        ports: 
+            - 27017:27017
+        volumes: 
+            - mongodb:/data/db
+
+    eureka-service:
+        image: eureka
+        container_name: eureka-spring
+        build: 
+            context: ./service-registry
+            dockerfile: Dockerfile
+        ports: 
+            - 8761:8761
+        restart: always
+
+    api-gateway:
+        image: gateway
+        container_name: api-gateway
+        build: 
+            context: ./api-gateway
+            dockerfile: Dockerfile
+        depends_on: 
+            - eureka-service
+            - user-service
+            - content-service
+            - payment-service
+        ports: 
+            - 9001:9001
+        restart: always
+    
+    hystrix-dashboard:
+        image: hystrix
+        container_name: hystrix-dashboard
+        build: 
+            context: ./hystrix-dashboard
+            dockerfile: Dockerfile
+        depends_on: 
+            - eureka-service
+        ports: 
+            - 9100:9100
+        restart: always
+    
+    content-service:
+        image: content-service
+        container_name: content-service
+        build: 
+            context: ./content-service
+            dockerfile: Dockerfile
+        depends_on: 
+            - eureka-service
+        ports: 
+            - 9002:9002
+        environment: 
+            - tmdb.api_key=c813a80de770f15206944313060693d8
+        restart: always
+
+    payment-service:
+        depends_on: 
+            - postgres
+            - eureka-service
+        image: payment-service
+        container_name: payment-service
+        ports: 
+            - 9004:9004
+        environment: 
+            - SECRET_KEY=b'O8Y[ \x9c\xb8\xb9\xfc\xd7\xb3J\x0e{\xe4\x03c\xee\xe8\xe7\xd5\xc45\xb6'
+            - JWT_SECRET=dkdshkds7sdty42hv20wdinsdg742ub2bjjb39dy9svd6tsd862bj4320sdihds7trwveibw0dy9euv3wbj499wiwd8wdbwdubdbuw993bu
+        build: 
+            context: ./payment-service
+            dockerfile: Dockerfile
+        command: 'python app.py'
+        restart: always
+
+    consumer:
+        depends_on: 
+            - postgres
+        image: consumer
+        container_name: consumer
+        build: 
+            context: ./payment-service
+            dockerfile: Dockerfile
+        command: 'python -u consumer.py'
+        restart: always
+    
+    user-service:
+        depends_on: 
+            - mongo
+            - eureka-service
+        image: user-service
+        container_name: user-service
+        ports: 
+            - 9003:9003
+        environment: 
+            - ACCESS_TOKEN_SECRET=dkdshkds7sdty42hv20wdinsdg742ub2bjjb39dy9svd6tsd862bj4320sdihds7trwveibw0dy9euv3wbj499wiwd8wdbwdubdbuw993bu
+            - COOKIE_SECRET=c1112oo3939393kkk303030i330303003eee039339
+            - EMAIL=email
+            - EMAIL_PASS=password
+        build: 
+            context: ./user-service
+            dockerfile: Dockerfile
+        restart: always
+    
+    zipkin:
+        image: openzipkin/zipkin
+        container_name: zipkin-server
+        ports: 
+            - 9411:9411
+        restart: always
+
+volumes: 
+    mongodb:
